@@ -4,17 +4,25 @@ Simple append-only database for Python with rich record formats and compression.
 
 ## For impatients
 
+```bash
+pip install amoredb
+```
+
 ### Example 1
 
 ```python
+import asyncio
 from amoredb import AmoreDB
 
-async with AmoreDB('test', 'w') as db:
-    await db.append(b'foo')
-    await db.append(b'bar')
-    await db.append(b'baz')
-    async for record in db:
-        print(record)
+async def main():
+    async with AmoreDB('test', 'w') as db:
+        await db.append(b'foo')
+        await db.append(b'bar')
+        await db.append(b'baz')
+        async for record in db:
+            print(record)
+
+asyncio.run(main())
 ```
 
 Result:
@@ -28,13 +36,17 @@ b'baz'
 ### Example 2
 
 ```python
+import asyncio
 from amoredb.json import JsonAmoreDB
 
-async with JsonAmoreDB('test.json', 'w') as db:
-    await db.append({'foo': 'bar'})
-    await db.append({'bar': 'foo'})
-    async for record in db:
-        print(record)
+async def main():
+    async with JsonAmoreDB('test.json', 'w') as db:
+        await db.append({'foo': 'bar'})
+        await db.append({'bar': 'foo'})
+        async for record in db:
+            print(record)
+
+asyncio.run(main())
 ```
 
 Result:
@@ -49,10 +61,10 @@ Result:
 The basic format for database records is bytes object. Subclasses may support other formats,
 as demonstrated above in the Example 2. AmoreDB provides support for the following formats:
 
-* JSON: `JsonMixin`, `JsonAmoreDB` from `amoredb.json`
-* strings: `StrMixin`, `StrAmoreDB` from `amoredb.str`
-* structures: `StructMixin`, `StructAmoreDB` from `amoredb.struct`
-* BSON: `BsonMixin`, `BsonAmoreDB` from `amoredb.bson`, requires [simple_bson](https://pypi.org/project/simple-bson/) package
+* JSON: `JsonMixin`, `JsonAmoreDB` from [amoredb.json](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/json.py)
+* strings: `StrMixin`, `StrAmoreDB` from [amoredb.str](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/str.py)
+* structures: `StructMixin`, `StructAmoreDB` from [amoredb.struct](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/struct.py)
+* BSON: `BsonMixin`, `BsonAmoreDB` from [amoredb.bson](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/bson.py), requires [simple_bson](https://pypi.org/project/simple-bson/) package
 
 Records are converted to the binary data by mixins and AmoreDB provides
 predefined classes, such, for example, as
@@ -67,11 +79,11 @@ class JsonAmoreDB(JsonMixin, AmoreDB):
 Similar to record format conversion, compression is implemented by mix-ins.
 AmoreDB provides a few for the following formats:
 
-* gzip: `amoredb.gzip.GzipMixin`
-* lzma: `amoredb.lzma.LzmaMixin`
-* lz4: `amoredb.lzma.Lz4Mixin`, requires [lz4](https://pypi.org/project/lz4/) package
-* brotli: `amoredb.brotli.BrotliMixin`, requires [brotli](https://pypi.org/project/Brotli/) package
-* snappy: `amoredb.snappy.SnappyMixin`, requires [python-snappy](https://pypi.org/project/python-snappy/) package
+* gzip: `GzipMixin` from [amoredb.gzip](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/gzip.py)
+* lzma: `LzmaMixin` from [amoredb.lzma](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/lzma.py)
+* lz4: `Lz4Mixin` from [amoredb.lzma](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/lz4.py), requires [lz4](https://pypi.org/project/lz4/) package
+* brotli: `BrotliMixin` from [amoredb.brotli](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/brotli.py), requires [brotli](https://pypi.org/project/Brotli/) package
+* snappy: `SnappyMixin` from [amoredb.snappy](https://github.com/amateur80lvl/amoredb/blob/main/amoredb/snappy.py), requires [python-snappy](https://pypi.org/project/python-snappy/) package
 
 There are no predefined classes for compression, it's up to end users to define ones for their needs.
 For example,
