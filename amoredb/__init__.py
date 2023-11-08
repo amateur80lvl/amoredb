@@ -7,7 +7,8 @@ Simple append-only database.
 
 __version__ = '0.0.1'
 
-from .core import BaseAmoreDB, AmoreIO
+from .core import BaseAmoreDB
+from .fileio.amore_aiofiles import AmoreAiofiles
 
-class AmoreDB(BaseAmoreDB, AmoreIO):
+class AmoreDB(BaseAmoreDB, AmoreAiofiles):
     pass
