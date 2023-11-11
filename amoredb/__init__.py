@@ -5,7 +5,7 @@ Simple append-only database.
 :license: LGPLv3, see LICENSE for details
 '''
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 from .core import BaseAmoreDB
 from .fileio.amore_aiofiles import AmoreAiofiles

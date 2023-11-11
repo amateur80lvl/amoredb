@@ -89,6 +89,8 @@ class AmoreDBContext:
         '''
         Get record by index.
 
+        Negative index is allowed, -1 is the last entry.
+
         * seek to record_id * index_entry_size in the index file
         * read the position of the record and the position of the next record from the index file
         * read the record from the data file, the size of record is calculated as a difference between positions
@@ -108,7 +110,7 @@ class AmoreDBContext:
             return None
         else:
             size = next_pos - data_pos
-            return await self.data_file.read(data_pos, size, self._db.record_from_raw_data)
+            return await self._data_file.read(data_pos, size, self._db.record_from_raw_data)
 
     async def append(self, record):
         '''
@@ -135,8 +137,7 @@ class AmoreDBContext:
         '''
         Return the number of records.
         '''
-        with self._db._lock:
-            return self._index_file.count()
+        return await self._index_file.count()
 
 
     async def _forward_iterator(self, start=None, stop=None, step=None):
