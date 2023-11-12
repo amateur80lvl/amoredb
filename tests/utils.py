@@ -12,7 +12,7 @@ async def _run_db_test(db_class, records_in, **db_params):
                 await db.append(record)
             async for record in db:
                 records_out.append(record)
-        print(db_class.__name__, 'data size:', os.stat(db_basename + '.data').st_size)
+            print(db_class.__name__, 'data size:', await db.data_size())
         assert records_in == records_out
     finally:
         shutil.rmtree(directory)

@@ -140,6 +140,15 @@ class AmoreDBContext:
         return await self._index_file.count()
 
 
+    async def data_size(self):
+        '''
+        Return the size of data in the datafile as the position for the next record.
+        This may differ from actual file size because write operation may be in progress.
+        '''
+        size = await self._index_file.read_last_entry()
+        return size or 0
+
+
     async def _forward_iterator(self, start=None, stop=None, step=None):
         start = start or 0
         step = step or 1
