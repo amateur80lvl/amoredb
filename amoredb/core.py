@@ -114,7 +114,14 @@ class AmoreDBContext:
 
     async def append(self, record):
         '''
-        Append new record and return its index (i.e. record id):
+        Append new record and return its index (i.e. record id)
+        '''
+        record_id, next_pos = await self.append2(record)
+        return record_id
+
+    async def append2(self, record):
+        '''
+        Append new record and return its index (i.e. record id) and the size of data in the datafile:
 
         * lock index file exclusively
         * get position for the new record from the index file
@@ -131,14 +138,14 @@ class AmoreDBContext:
             if pos is None:
                 pos = 0
             next_pos = await self._data_file.write(pos, record, self._db.record_to_raw_data)
-            return await self._index_file.append(next_pos)
+            record_id = await self._index_file.append(next_pos)
+            return record_id, next_pos
 
     async def count(self):
         '''
         Return the number of records.
         '''
         return await self._index_file.count()
-
 
     async def data_size(self):
         '''
@@ -147,7 +154,6 @@ class AmoreDBContext:
         '''
         size = await self._index_file.read_last_entry()
         return size or 0
-
 
     async def _forward_iterator(self, start=None, stop=None, step=None):
         start = start or 0
