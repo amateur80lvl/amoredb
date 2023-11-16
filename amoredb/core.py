@@ -90,6 +90,9 @@ class BaseAmoreDB:
             next_pos = await self._index_file.read_nth_entry(0)
         else:
             data_pos = await self._index_file.read_nth_entry(record_id - 1)
+            if data_pos is None:
+                # happens when record_id is -1 and there's only one entry in the index
+                data_pos = 0
             next_pos = await self._index_file.read_current_entry()
         if next_pos is None:
             return None
