@@ -18,53 +18,16 @@ class BaseAmoreDB:
             else:
                 mode = 'r'
         self._mode = mode
-        self._db_context = None
+        self._index_file = None
+        self._data_file = None
         super().__init__(*args, **kwargs)
 
     async def __aenter__(self):
-        index_file, data_file = await self._open_db_files(self._base_path, self._mode)
-        self._db_context = AmoreDBContext(self, index_file, data_file)
-        return self._db_context
+        await self.open()
+        return self
 
     async def __aexit__(self, exc_type, exc_value, exc_tb):
-        await self._db_context.close()
-        self._db_context = None
-
-    # Database interface
-
-    index_entry_format = '<Q'  # 64-bit, can be redefined in a subclass or mix-in
-
-    # Abstract methods suck when used with mix-ins. The following should be implemented (see fileio):
-    #
-    #@abc.abstractmethod
-    #async def _open_db_files(self, base_path, mode):
-    #    '''
-    #    Return instances of IndexFile and DataFile
-    #    '''
-
-    # Record transformation interface
-
-    # Record transformation functions are called from DataFile methods.
-    # Given that in asynchronous mode file I/O is executed in the context
-    # of a separate thread, these functions can perform heavy tasks and should
-    # be executed in the context of that thread as well.
-    # This should be revised later for I/O without worker threads, such as io_uring.
-    # In that case worker threads may still be necessary for compression.
-    # Thus, these functions are most likely called in the context of a separate thread.
-
-    def record_to_raw_data(self, record_data):
-        return record_data
-
-    def record_from_raw_data(self, record_data):
-        return record_data
-
-
-class AmoreDBContext:
-
-    def __init__(self, db, index_file, data_file):
-        self._db = db
-        self._index_file = index_file
-        self._data_file = data_file
+        await self.close()
 
     def __aiter__(self):
         return self._forward_iterator()
@@ -80,10 +43,28 @@ class AmoreDBContext:
         else:
             raise TypeError(f'Record indices must be slices, not {type(key).__name__}')
 
+    # Database interface
+
+    index_entry_format = '<Q'  # 64-bit, can be redefined in a subclass or mix-in
+
+    # Abstract methods suck when used with mix-ins. The following should be implemented (see fileio):
+    #
+    #@abc.abstractmethod
+    #async def _open_db_files(self, base_path, mode):
+    #    '''
+    #    Return instances of IndexFile and DataFile
+    #    '''
+
+    async def open(self):
+        if self._index_file is None:
+            self._index_file, self._data_file = await self._open_db_files(self._base_path, self._mode)
+
     async def close(self):
-        await self._index_file.close()
-        await self._data_file.close()
-        self.db = None  # break circular reference
+        if self._index_file is not None:
+            await self._index_file.close()
+            await self._data_file.close()
+            self._index_file = None
+            self._data_file = None
 
     async def read(self, record_id):
         '''
@@ -110,7 +91,7 @@ class AmoreDBContext:
             return None
         else:
             size = next_pos - data_pos
-            return await self._data_file.read(data_pos, size, self._db.record_from_raw_data)
+            return await self._data_file.read(data_pos, size, self.record_from_raw_data)
 
     async def append(self, record):
         '''
@@ -137,7 +118,7 @@ class AmoreDBContext:
             pos = await self._index_file.read_last_entry()
             if pos is None:
                 pos = 0
-            next_pos = await self._data_file.write(pos, record, self._db.record_to_raw_data)
+            next_pos = await self._data_file.write(pos, record, self.record_to_raw_data)
             record_id = await self._index_file.append(next_pos)
             return record_id, next_pos
 
@@ -162,7 +143,7 @@ class AmoreDBContext:
         n = start
 
         # open files again for separate seek operations
-        index_file, data_file = await self._db._open_db_files(self._db._base_path, 'r')
+        index_file, data_file = await self._open_db_files(self._base_path, 'r')
         try:
             # get record count for negative indices
             if start < 0 or (stop or 0) < 0:
@@ -192,7 +173,7 @@ class AmoreDBContext:
 
                 # load record
                 size = next_pos - data_pos
-                record = await data_file.read(data_pos, size, self._db.record_from_raw_data)
+                record = await data_file.read(data_pos, size, self.record_from_raw_data)
                 if record is None:
                     # XXX something went wrong, raise an exception?
                     return
@@ -215,3 +196,19 @@ class AmoreDBContext:
 
     def _reverse_iterator(self, start=None, stop=None, step=None):
         raise NotImplementedError('Reverse iteration is not implemented yet')
+
+    # Record transformation interface
+
+    # Record transformation functions are called from DataFile methods.
+    # Given that in asynchronous mode file I/O is executed in the context
+    # of a separate thread, these functions can perform heavy tasks and should
+    # be executed in the context of that thread as well.
+    # This should be revised later for I/O without worker threads, such as io_uring.
+    # In that case worker threads may still be necessary for compression.
+    # Thus, these functions are most likely called in the context of a separate thread.
+
+    def record_to_raw_data(self, record_data):
+        return record_data
+
+    def record_from_raw_data(self, record_data):
+        return record_data
