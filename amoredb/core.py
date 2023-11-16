@@ -194,7 +194,7 @@ class BaseAmoreDB:
             await index_file.close()
             await data_file.close()
 
-    def _reverse_iterator(self, start=None, stop=None, step=None):
+    async def _reverse_iterator(self, start=None, stop=None, step=None):
         raise NotImplementedError('Reverse iteration is not implemented yet')
 
     # Record transformation interface
