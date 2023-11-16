@@ -115,7 +115,7 @@ class BaseAmoreDB:
         async with await self._index_file.lock():
             # If previous append was unsuccessfull, the data file may contain garbage at the end.
             # Get the position for writing from the index file instead of simply appending to the data file.
-            pos = await self._index_file.read_last_entry()
+            pos = await self._index_file.read_nth_entry(-1)
             if pos is None:
                 pos = 0
             next_pos = await self._data_file.write(pos, record, self.record_to_raw_data)
@@ -133,7 +133,7 @@ class BaseAmoreDB:
         Return the size of data in the datafile as the position for the next record.
         This may differ from actual file size because write operation may be in progress.
         '''
-        size = await self._index_file.read_last_entry()
+        size = await self._index_file.read_nth_entry(-1)
         return size or 0
 
     async def _forward_iterator(self, start=None, stop=None, step=None):

@@ -128,17 +128,10 @@ class AmoreIndexFile:
 
     async def read_nth_entry(self, n):
         '''
-        Read Nth entry.
-        '''
-        await self.seek(n)
-        return await self.read_current_entry()
-
-    async def read_last_entry(self):
-        '''
-        Read last entry.
+        Read Nth entry, negative n is also allowed, -1 for the last entry.
         '''
         try:
-            await self.seek(-1)
+            await self.seek(n)
         except OSError:
             # index file is empty
             return None
