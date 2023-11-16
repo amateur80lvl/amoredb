@@ -71,7 +71,9 @@ class Lz4Mixin:
             'lz4_block_checksum':   'block_checksum',
             'lz4_store_size':       'store_size',
         }
-        self._lz4_params = dict((params_map[k], v) for k, v in kwargs.items() if k in params_map)
+        self._lz4_params = dict(
+            (params_map[k], kwargs.pop(k)) for k in list(kwargs.keys()) if k in params_map
+        )
         super().__init__(*args, **kwargs)
 
     def record_to_raw_data(self, record_data):

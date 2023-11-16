@@ -45,7 +45,9 @@ class BrotliMixin:
             'lgwin':          'lgwin',
             'lgblock':        'lgblock'
         }
-        self._brotli_params = dict((params_map[k], v) for k, v in kwargs.items() if k in params_map)
+        self._brotli_params = dict(
+            (params_map[k], kwargs.pop(k)) for k in list(kwargs.keys()) if k in params_map
+        )
         super().__init__(*args, **kwargs)
 
     def record_to_raw_data(self, record_data):
