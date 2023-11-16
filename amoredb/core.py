@@ -22,6 +22,10 @@ class BaseAmoreDB:
         self._data_file = None
         super().__init__(*args, **kwargs)
 
+    @property
+    def base_path(self):
+        return self._base_path
+
     async def __aenter__(self):
         await self.open()
         return self
