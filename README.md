@@ -96,7 +96,7 @@ from amoredb.gzip import GzipMixin
 class MyDB(JsonMixin, GzipMixin, AmoreDB):
     pass
 
-async with MyDB('test.json.gz', 'w') as db:
+async with MyDB('test.json.gz', 'w', compresslevel=5) as db:
     await db.append({'foo': 'bar'})
     await db.append({'bar': 'foo'})
     async for record in db:

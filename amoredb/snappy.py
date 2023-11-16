@@ -12,6 +12,8 @@ from . import AmoreDB
 class SnappyMixin:
     '''
     Snappy compression mix-in for AmoreDB.
+
+    No compression parameters are defined.
     '''
 
     def record_to_raw_data(self, record_data):
